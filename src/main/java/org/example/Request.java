@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 public class Request {
     private String method;
-    private String path;
-    private String protocol;
+    final private String path;
+    final private String protocol;
     private HashMap<String, String> headers;
     private String body;
 

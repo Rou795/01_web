@@ -1,24 +1,23 @@
 package org.example;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         final var server = new Server();
 
         // добавление хендлеров (обработчиков)
 
         server.addHandler("GET", "/messages", (request, responseStream) -> {
             // TODO: handlers code
-            try{
-                String response = "";
+            try {
+                String response;
                 if (Server.messages.isEmpty()) {
                     response = "\r\n\r\nMessages list are empty";
                     responseStream.write(Server.headersResponse(200, "text", response.length()));
                     responseStream.write(response.getBytes());
                     responseStream.flush();
-            } else {
+                } else {
                     StringBuilder builder = new StringBuilder();
                     builder.append("\r\n\r\n");
                     for (String mes : Server.messages) {

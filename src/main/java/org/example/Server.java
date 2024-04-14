@@ -2,7 +2,6 @@ package org.example;
 
 import java.io.*;
 import java.net.ServerSocket;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +23,7 @@ public class Server {
                     try (
                             final var socket = serverSocket.accept();
                             final var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                            final var out = new BufferedOutputStream(socket.getOutputStream());
+                            final var out = new BufferedOutputStream(socket.getOutputStream())
                     ) {
                         // Читаем весь запрос и раскладываем его по частям в объект Request
                         StringBuilder builder = new StringBuilder();
@@ -53,9 +52,9 @@ public class Server {
                         }
                         //выделение первой строки запроса для создания объекта Request
                         System.out.println(requestLine);
-                        String method = "";
-                        String path = "";
-                        String protocol = "";
+                        String method;
+                        String path;
+                        String protocol;
                         final String[] partsForBuilder = requestLine.split(" ");
                         synchronized (partsForBuilder) {
                             method = partsForBuilder[0];
