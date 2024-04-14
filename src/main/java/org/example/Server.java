@@ -2,21 +2,23 @@ package org.example;
 
 import java.io.*;
 import java.net.ServerSocket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Server {
 
-    final static List<String> VALID_RATHS = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
-    final static int PORT = 9999;
+    static int port = 9999;
 
-    public static void main(String[] args) throws InterruptedException {
+    volatile static HashMap<String, Handler> handlers = new HashMap<>();
 
+    static List<String> messages = new ArrayList<>();
+
+    public void initial() {
         List<Thread> connectPool = new ArrayList<>();
-        try (final var serverSocket = new ServerSocket(PORT)) {
+        //messages.add("test");
+        try (final var serverSocket = new ServerSocket(port)) {
             Runnable connect = () -> {
                 while (true) {
                     try (
@@ -24,41 +26,55 @@ public class Server {
                             final var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                             final var out = new BufferedOutputStream(socket.getOutputStream());
                     ) {
-                        // read only request line for simplicity
-                        // must be in form GET /path HTTP/1.1
-                        final var requestLine = in.readLine();
-                        final var parts = requestLine.split(" ");
+                        // Читаем весь запрос и раскладываем его по частям в объект Request
+                        StringBuilder builder = new StringBuilder();
+                        while (in.ready()) {
+                            builder.append(in.readLine());
+                            builder.append("\n");
+                        }
+                        String fullRequest = builder.toString();
+                        System.out.println(fullRequest);
+                        String body = "";
+                        //проверка на существование body
+                        if (fullRequest.contains("\r\n\r\n")) {
+                            body = fullRequest.split("\r\n\r\n")[1];
+                            fullRequest = fullRequest.replaceFirst(body, "");
+                        }
+                        String[] parts = fullRequest.split("\n");
+                        HashMap<String, String> headers = new HashMap<>();
+                        String requestLine = "";
+                        for (int i = 0; i < parts.length; i++) {
+                            if (i == 0) {
+                                requestLine = parts[i];
+                            } else {
+                                String[] pair = parts[i].split(":", 2);
+                                headers.put(pair[0], pair[1].strip());
+                            }
+                        }
+                        //выделение первой строки запроса для создания объекта Request
+                        System.out.println(requestLine);
+                        String method = "";
+                        String path = "";
+                        String protocol = "";
+                        final String[] partsForBuilder = requestLine.split(" ");
+                        synchronized (partsForBuilder) {
+                            method = partsForBuilder[0];
+                            path = partsForBuilder[1];
+                            protocol = partsForBuilder[2];
+                        }
+                        Request request = new Request(method, path, protocol, headers, body);
                         System.out.println("good connect");
-                        if (!checkLength(parts)) {
-                            // just close socket
-                            continue;
-                        }
-
-                        final var path = parts[1];
-                        if (!checkPaths(path, out)) {
-                            continue;
-                        }
-
-                        final var filePath = Path.of(".", "public", path);
-                        final var mimeType = Files.probeContentType(filePath);
-
-                        // special case for classic
-                        if (path.equals("/classic.html")) {
-                            final var template = Files.readString(filePath);
-                            final var content = template.replace(
-                                    "{time}",
-                                    LocalDateTime.now().toString()
-                            ).getBytes();
-                            out.write(headersResponse(200, mimeType, content.length));
-                            out.write(content);
+                    // просмотр handler'ов по ключу и задействование нужного
+                        synchronized (handlers) {
+                            String findKey = request.getMethod() + request.getPath();
+                            for (String key : handlers.keySet()) {
+                                if (key.equals(findKey)) {
+                                    handlers.get(key).handle(request, out);
+                                }
+                            }
+                            out.write(headersResponse404());
                             out.flush();
-                            continue;
                         }
-                        System.out.println("send image...");
-                        final var length = Files.size(filePath);
-                        out.write(headersResponse(200, mimeType, length));
-                        Files.copy(filePath, out);
-                        out.flush();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -69,23 +85,8 @@ public class Server {
                 connectPool.get(i).start();
                 connectPool.get(i).join();
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-        }
-    }
-
-    public static boolean checkLength(String[] parts) {
-        // just close socket
-        return parts.length == 3;
-    }
-
-    public static boolean checkPaths(String path, BufferedOutputStream out) throws IOException {
-        if (VALID_RATHS.contains(path)) {
-            return true;
-        } else {
-            out.write(headersResponse404());
-            out.flush();
-            return false;
         }
     }
 
@@ -105,4 +106,20 @@ public class Server {
                 "\r\n").getBytes();
     }
 
+    public static byte[] headersResponse201() {
+        return ("HTTP/1.1 201 Message saved\r\n" +
+                "Content-Length: 0\r\n" +
+                "Connection: close\r\n" +
+                "\r\n").getBytes();
+    }
+
+    public void addHandler(String method, String rout, Handler handler) {
+        synchronized (handlers) {
+            handlers.put(method + rout, handler);
+        }
+    }
+
+    public void listen(int port) {
+        Server.port = port;
+    }
 }
