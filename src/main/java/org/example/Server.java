@@ -96,21 +96,21 @@ public class Server {
                                 out.flush();
                             }
                         }
-                        } catch(IOException e){
-                            throw new RuntimeException(e);
-                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-            } ;
-                for (int i = 0; i < 64; i++) {
-                    connectPool.add(new Thread(connect));
-                    connectPool.get(i).start();
                 }
-                for (Thread thread : connectPool) {
-                    thread.join();
-                }
-            } catch(IOException | InterruptedException e){
-                e.printStackTrace();
+            };
+            for (int i = 0; i < 64; i++) {
+                connectPool.add(new Thread(connect));
+                connectPool.get(i).start();
             }
+            for (Thread thread : connectPool) {
+                thread.join();
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
 
     }
 
