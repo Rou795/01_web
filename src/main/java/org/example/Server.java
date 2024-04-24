@@ -95,12 +95,19 @@ public class Server {
                         //выделение первой строки запроса для создания объекта Request
 
                         Request request = new Request(method, path, protocol, headers, body);
-                        System.out.println("good connect");
-                        String params = URLDecoder.decode(request.getPath());
+                       // System.out.println("good connect");
+
+                        // проверочные выводы для методов getQueryParams() и getQueryParam(String name)
+                        List<List<String>> params = request.getQueryParams();
                         System.out.println(params);
+                        System.out.println(request.getQueryParam("title"));
+                        System.out.println(request.getQueryParam("value"));
+
                         // просмотр handler'ов по ключу и задействование нужного
+                        // доработал, чтобы реагировал на любые наборы параметров в QueryString
                         synchronized (handlers) {
-                            String findKey = request.getMethod() + request.getPath();
+                            path = request.getPath();
+                            String findKey = request.getMethod() + path.substring(0, path.indexOf("?"));
                             for (String key : handlers.keySet()) {
                                 if (key.equals(findKey)) {
                                     handlers.get(key).handle(request, out);
@@ -194,4 +201,5 @@ public class Server {
                 .map(String::trim)
                 .findFirst();
     }
+
 }

@@ -1,19 +1,8 @@
 package org.example;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import java.io.IOException;
 import java.net.*;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.*;
+
 
 public class Request {
     private String method;
@@ -62,15 +51,32 @@ public class Request {
         return protocol;
     }
 
+    // методы для парсинга QueryString
     public List<List<String>> getQueryParams() {
         List<List<String>> paramsList = new ArrayList<>();
         String params = "";
-        if (method.equals("GET")) {
-            params = URLDecoder.decode(path);
-        } else {
-            params = URLDecoder.decode(body);
+        params = URLDecoder.decode(path).replaceFirst("^.{2}", "");
+        String[] parts = params.split("&");
+        for (String part : parts) {
+            paramsList.add(List.of(part.split("=", 2)));
         }
-        System.out.println(params);
         return paramsList;
     }
+
+    // выбрал список, так как могут быть параметры с одинаковыми ключами
+    public List<String> getQueryParam(String name) {
+        List<List<String>> paramsList = this.getQueryParams();
+        List<String> response = new ArrayList<>();
+        for (List<String> paramSet : paramsList) {
+            if (paramSet.getFirst().equals(name)) {
+                response.add(paramSet.get(1));
+            }
+        }
+        return response;
+    }
+/*
+    public List<String> getPostParam(String name) {
+
+    }
+ */
 }

@@ -44,8 +44,19 @@ public class Main {
                 throw new RuntimeException(e);
             }
         });
-// handler для дз с формами
+
+// handler'ы для дз с формами
         server.addHandler("POST", "/", (request, responseStream) -> {
+            // TODO: handlers code
+            try {
+                responseStream.write(Server.headersResponse201());
+                responseStream.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        server.addHandler("GET", "/", (request, responseStream) -> {
             // TODO: handlers code
             try {
                 responseStream.write(Server.headersResponse201());
