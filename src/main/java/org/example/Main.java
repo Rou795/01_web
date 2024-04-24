@@ -44,6 +44,16 @@ public class Main {
                 throw new RuntimeException(e);
             }
         });
+// handler для дз с формами
+        server.addHandler("POST", "/", (request, responseStream) -> {
+            // TODO: handlers code
+            try {
+                responseStream.write(Server.headersResponse201());
+                responseStream.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         // код инициализации сервера (из вашего предыдущего ДЗ)
         server.listen(9999);
         server.initial();
