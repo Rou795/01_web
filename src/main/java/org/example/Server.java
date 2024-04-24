@@ -98,11 +98,19 @@ public class Server {
                        // System.out.println("good connect");
 
                         // проверочные выводы для методов getQueryParams() и getQueryParam(String name)
-                        List<List<String>> params = request.getQueryParams();
-                        System.out.println(params);
-                        System.out.println(request.getQueryParam("title"));
-                        System.out.println(request.getQueryParam("value"));
+                        if (request.getMethod().equals(GET)) {
+                            List<List<String>> params = request.getQueryParams();
+                            System.out.println(params);
+                            System.out.println(request.getQueryParam("title"));
+                            System.out.println(request.getQueryParam("value"));
+                        }
 
+                        if (request.getMethod().equals(POST)) {
+                            List<List<String>> params = request.getPostParams();
+                            System.out.println(params);
+                            System.out.println(request.getPostParam("title"));
+                            System.out.println(request.getPostParam("value"));
+                        }
                         // просмотр handler'ов по ключу и задействование нужного
                         // доработал, чтобы реагировал на любые наборы параметров в QueryString
                         synchronized (handlers) {

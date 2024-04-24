@@ -74,9 +74,30 @@ public class Request {
         }
         return response;
     }
-/*
-    public List<String> getPostParam(String name) {
 
+    // методы для парсинга параметров из тела при методе Post
+    public List<List<String>> getPostParams() {
+        List<List<String>> paramsList = new ArrayList<>();
+        if (body != null) {
+            String params = "";
+            params = URLDecoder.decode(body);
+            String[] parts = params.split("&");
+            for (String part : parts) {
+                paramsList.add(List.of(part.split("=", 2)));
+            }
+        }
+        return paramsList;
     }
- */
+
+    public List<String> getPostParam(String name) {
+        List<List<String>> paramsList = this.getPostParams();
+        List<String> response = new ArrayList<>();
+        for (List<String> paramSet : paramsList) {
+            if (paramSet.getFirst().equals(name)) {
+                response.add(paramSet.get(1));
+            }
+        }
+        return response;
+    }
+
 }
