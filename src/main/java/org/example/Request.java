@@ -13,10 +13,11 @@ public class Request {
 
     public Request(String method, String path, String protocol, List<String> headers, String body) {
         this.method = method;
-        this.path = path;
+        this.path = URLDecoder.decode(path);
         this.protocol = protocol;
         this.headers = headers;
-        this.body = body;
+        this.body = URLDecoder.decode(body);
+
     }
 
     public void setMethod(String method) {
@@ -54,8 +55,7 @@ public class Request {
     // методы для парсинга QueryString
     public List<List<String>> getQueryParams() {
         List<List<String>> paramsList = new ArrayList<>();
-        String params = "";
-        params = URLDecoder.decode(path).replaceFirst("^.{2}", "");
+        String params = path.replaceFirst("^.{2}", "");
         String[] parts = params.split("&");
         for (String part : parts) {
             paramsList.add(List.of(part.split("=", 2)));
@@ -79,9 +79,8 @@ public class Request {
     public List<List<String>> getPostParams() {
         List<List<String>> paramsList = new ArrayList<>();
         if (body != null) {
-            String params = "";
-            params = URLDecoder.decode(body);
-            String[] parts = params.split("&");
+            System.out.println();
+            String[] parts = body.split("&");
             for (String part : parts) {
                 paramsList.add(List.of(part.split("=", 2)));
             }
