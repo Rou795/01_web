@@ -108,7 +108,7 @@ public class Server {
                         }
 
                         if (request.getMethod().equals(POST)) {
-                            List<List<String>> params = request.getPostParams();
+                            List<NameValuePair> params = request.getPostParams();
                             System.out.println(params);
                             System.out.println(request.getPostParam("title"));
                             System.out.println(request.getPostParam("value"));

@@ -12,7 +12,7 @@ public class Request {
     private String method;
     final private String path;
     final private String protocol;
-    private List<String> headers;
+    private HashMap<String, String> headers = new HashMap<>();
     private String body;
     private List<NameValuePair> queryParams;
 
@@ -20,7 +20,7 @@ public class Request {
         this.method = method;
         this.path = path;
         this.protocol = protocol;
-        this.headers = headers;
+        headers.stream().forEach(o -> this.headers.put(o.split(": ")[0], o.split(": ")[1]));
         this.body = body;
         this.queryParams = URLEncodedUtils.parse(path.replaceFirst("/\\?", ""), Charset.defaultCharset());
     }
@@ -29,9 +29,10 @@ public class Request {
         this.method = method;
     }
 
-    public void setHeaders(List<String> headers) {
+    /*public void setHeaders(List<String> headers) {
         this.headers = headers;
     }
+     */
 
     public void setBody(String body) {
         this.body = body;
@@ -41,7 +42,7 @@ public class Request {
         return method;
     }
 
-    public List<String> getHeaders() {
+    public HashMap<String, String> getHeaders() {
         return headers;
     }
 
@@ -89,24 +90,29 @@ public class Request {
     }
 
     // методы для парсинга параметров из тела при методе Post
-    public List<List<String>> getPostParams() {
-        List<List<String>> paramsList = new ArrayList<>();
-        if (body != null) {
-            System.out.println();
-            String[] parts = body.split("&");
-            for (String part : parts) {
-                paramsList.add(List.of(part.split("=", 2)));
+    public List<NameValuePair> getPostParams() {
+        List<NameValuePair> paramsList = new ArrayList<>();
+        /*
+        String contentType = this.headers.stream()
+                .filter(o -> o.startsWith("Content-Type"))
+                .map(o -> o.split(": ")[1])
+                .toString();
+        */
+        if (this.headers.get("Content-Type").equals("application/x-www-form-urlencoded")) {
+            if (body != null) {
+                System.out.println();
+                paramsList = URLEncodedUtils.parse(body, Charset.defaultCharset());
             }
         }
         return paramsList;
     }
 
     public List<String> getPostParam(String name) {
-        List<List<String>> paramsList = this.getPostParams();
+        List<NameValuePair> paramsList = this.getPostParams();
         List<String> response = new ArrayList<>();
-        for (List<String> paramSet : paramsList) {
-            if (paramSet.getFirst().equals(name)) {
-                response.add(paramSet.get(1));
+        for (NameValuePair paramSet : paramsList) {
+            if (paramSet.getName().equals(name)) {
+                response.add(paramSet.getValue());
             }
         }
         return response;
