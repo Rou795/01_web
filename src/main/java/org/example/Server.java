@@ -1,5 +1,7 @@
 package org.example;
 
+import org.apache.http.NameValuePair;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.URLDecoder;
@@ -99,7 +101,7 @@ public class Server {
 
                         // проверочные выводы для методов getQueryParams() и getQueryParam(String name)
                         if (request.getMethod().equals(GET)) {
-                            List<List<String>> params = request.getQueryParams();
+                            List<NameValuePair> params = request.getQueryParams();
                             System.out.println(params);
                             System.out.println(request.getQueryParam("title"));
                             System.out.println(request.getQueryParam("value"));
@@ -112,10 +114,16 @@ public class Server {
                             System.out.println(request.getPostParam("value"));
                         }
                         // просмотр handler'ов по ключу и задействование нужного
-                        // доработал, чтобы реагировал на любые наборы параметров в QueryString
+                        // доработал, чтобы реагировал на любые наборы параметров в QueryString,
+                        // а также на отсутствие параметров
                         synchronized (handlers) {
                             path = request.getPath();
-                            String findKey = request.getMethod() + path.substring(0, path.indexOf("?"));
+                            String findKey = "";
+                            if (path.indexOf("?") == -1) {
+                                findKey = path;
+                            } else {
+                                findKey = request.getMethod() + path.substring(0, path.indexOf("?"));
+                            }
                             for (String key : handlers.keySet()) {
                                 if (key.equals(findKey)) {
                                     handlers.get(key).handle(request, out);

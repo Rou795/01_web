@@ -1,6 +1,10 @@
 package org.example;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
 import java.net.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 
@@ -10,14 +14,15 @@ public class Request {
     final private String protocol;
     private List<String> headers;
     private String body;
+    private List<NameValuePair> queryParams;
 
     public Request(String method, String path, String protocol, List<String> headers, String body) {
         this.method = method;
-        this.path = URLDecoder.decode(path);
+        this.path = path;
         this.protocol = protocol;
         this.headers = headers;
-        this.body = URLDecoder.decode(body);
-
+        this.body = body;
+        this.queryParams = URLEncodedUtils.parse(path.replaceFirst("/\\?", ""), Charset.defaultCharset());
     }
 
     public void setMethod(String method) {
@@ -53,7 +58,9 @@ public class Request {
     }
 
     // методы для парсинга QueryString
-    public List<List<String>> getQueryParams() {
+    public List<NameValuePair> getQueryParams() {
+        return this.queryParams;
+        /*
         List<List<String>> paramsList = new ArrayList<>();
         String params = path.replaceFirst("^.{2}", "");
         String[] parts = params.split("&");
@@ -61,10 +68,15 @@ public class Request {
             paramsList.add(List.of(part.split("=", 2)));
         }
         return paramsList;
+         */
     }
 
     // выбрал список, так как могут быть параметры с одинаковыми ключами
-    public List<String> getQueryParam(String name) {
+    public List<NameValuePair> getQueryParam(String name) {
+        return this.queryParams.stream()
+                .filter(o -> o.getName().equals(name))
+                .toList();
+        /*
         List<List<String>> paramsList = this.getQueryParams();
         List<String> response = new ArrayList<>();
         for (List<String> paramSet : paramsList) {
@@ -73,6 +85,7 @@ public class Request {
             }
         }
         return response;
+         */
     }
 
     // методы для парсинга параметров из тела при методе Post
